@@ -10,10 +10,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $jamMulai = $_POST["jamMulai"];
     $jamSelesai = $_POST["jamSelesai"];
 
-    $queryOverlap = "SELECT * FROM jadwal_periksa INNER JOIN dokter ON jadwal_periksa.id_dokter = dokter.id INNER JOIN poli ON dokter.id_poli = poli.id WHERE id_poli = '$idPoli' AND hari = '$hari' AND ((jam_mulai < '$jamSelesai' AND jam_selesai > '$jamMulai') OR (jam_mulai < '$jamMulai' AND jam_selesai > '$jamMulai'))";
+    //Cek apakah jadwal sudah diambil oleh dokter
+    $queryHari = "SELECT * FROM jadwal_periksa WHERE id_dokter = '$idDokter' AND hari = '$hari'";
+    $resultHari = mysqli_query($mysqli, $queryHari);
 
+    if (mysqli_num_rows($resultHari)>0) {
+        echo '<script>alert("Anda telah mengambil jadwal hari ini");window.location.href="../../jadwalPeriksa.php";</script>';
+        exit();
+    }
+
+    //Cek apakah jadwal bentrok dengan dokter lain
+    $queryOverlap = "SELECT * FROM jadwal_periksa INNER JOIN dokter ON jadwal_periksa.id_dokter = dokter.id INNER JOIN poli ON dokter.id_poli = poli.id WHERE id_poli = '$idPoli' AND hari = '$hari' AND ((jam_mulai < '$jamSelesai' AND jam_selesai > '$jamMulai') OR (jam_mulai < '$jamMulai' AND jam_selesai > '$jamMulai'))";
     $resultOverlap = mysqli_query($mysqli,$queryOverlap);
-    
+
     if (mysqli_num_rows($resultOverlap)>0) {
         echo '<script>alert("Dokter lain telah mengambil jadwal ini");window.location.href="../../jadwalPeriksa.php";</script>';
     }
